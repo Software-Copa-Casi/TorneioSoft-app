@@ -2,8 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.js'
 import { Alert, Spinner, TeamBadge } from '../../components/ui.jsx'
+import { useAuth } from '../../auth.jsx'
+
+const STATUS_LABEL = { AGENDADA: 'Agendada', EM_ANDAMENTO: 'Em andamento', ENCERRADA: 'Encerrada' }
 
 export default function MatchesTab({ tournament }) {
+  const { user } = useAuth()
   const [matches, setMatches] = useState(null)
   const [error, setError] = useState('')
   const [group, setGroup] = useState('')
@@ -53,16 +57,26 @@ export default function MatchesTab({ tournament }) {
           <h3>Rodada {round} <span className="muted small">· {[...new Set(list.map((m) => m.stageLabel.replace(/^\d+ª rodada - /, '')))].join(' / ')}</span></h3>
           <div className="match-grid">
             {list.map((m) => (
-              <div key={m.id} className="card match">
+              <div key={m.id} className={`card match match-${m.status}`}>
                 <div className="match-meta">
                   <span>Jogo {m.number}</span>
                   <span>{m.groupName ? `Grupo ${m.groupName}` : m.stageLabel}</span>
                 </div>
                 <div className="match-teams">
                   <Side side={m.home} />
-                  <span className="vs">×</span>
+                  {m.status === 'AGENDADA'
+                    ? <span className="vs">×</span>
+                    : <span className="score">{m.homeScore} – {m.awayScore}</span>}
                   <Side side={m.away} right />
                 </div>
+                {m.home.defined && m.away.defined && (
+                  <div className="match-footer">
+                    <span className={`match-status st-${m.status}`}>{STATUS_LABEL[m.status]}</span>
+                    <Link to={`/torneios/${tournament.id}/partidas/${m.id}`} className="btn btn-sm btn-secondary">
+                      {m.status === 'AGENDADA' ? (user ? 'Iniciar partida' : 'Detalhes') : m.status === 'EM_ANDAMENTO' ? 'Acompanhar' : 'Ver súmula'}
+                    </Link>
+                  </div>
+                )}
               </div>
             ))}
           </div>

@@ -243,3 +243,10 @@ input:disabled, select:disabled { background: #f0f3f1; color: var(--muted); }
 .match-side.right { flex-direction: row-reverse; text-align: right; }
 .match-side.placeholder { color: var(--muted); font-weight: 500; font-style: italic; font-size: .9rem; }
 .vs { color: var(--muted); font-weight: 800; }
+
+/* rodadas: status e placar */
+.match .score { font-weight: 900; font-size: 1.1rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.match-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+.match-status { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.match-status.st-EM_ANDAMENTO { color: var(--green-600); }
+.match-EM_ANDAMENTO { border-color: var(--green-600); box-shadow: 0 0 0 1px var(--green-600), var(--shadow); }
