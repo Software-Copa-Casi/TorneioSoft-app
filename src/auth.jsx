@@ -18,10 +18,18 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('copacasi:logout', onLogout)
   }, [])
 
-  async function login(username, password) {
-    const res = await api.post('/auth/login', { username, password })
+  // o back end devolve { token, user: { id, name, email, role } } no login e no cadastro
+  function start(res) {
     setToken(res.token)
-    setUser({ username: res.username })
+    setUser(res.user)
+  }
+
+  async function login(username, password) {
+    start(await api.post('/auth/login', { username, password }))
+  }
+
+  async function register(data) {
+    start(await api.post('/auth/register', data))
   }
 
   function logout() {
@@ -29,7 +37,7 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, ready, login, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, ready, login, register, logout }}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => useContext(AuthContext)

@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useParams } from 'react-router-dom'
 import { api, getOptions, labelOf } from '../api/client.js'
 import { useAuth } from '../auth.jsx'
 import { Alert, Spinner } from '../components/ui.jsx'
+import AccessPanel, { FollowButton, PrivateGate } from '../components/AccessPanel.jsx'
 import TeamsTab from './tabs/TeamsTab.jsx'
 import DrawTab from './tabs/DrawTab.jsx'
 import MatchesTab from './tabs/MatchesTab.jsx'
@@ -25,13 +26,17 @@ export default function TournamentDetail() {
   const [t, setT] = useState(null)
   const [options, setOptions] = useState(null)
   const [error, setError] = useState('')
+  const [blocked, setBlocked] = useState(false)
 
-  const reload = useCallback(() => api.get(`/tournaments/${id}`).then(setT).catch((e) => setError(e.message)), [id])
+  const reload = useCallback(() => api.get(`/tournaments/${id}`)
+    .then((d) => { setT(d); setBlocked(false); setError('') })
+    .catch((e) => { if (e.status === 403) setBlocked(true); else setError(e.message) }), [id])
 
+  // recarrega ao entrar ou sair da conta, porque as permissões mudam
   useEffect(() => {
     reload()
     getOptions().then(setOptions).catch(() => {})
-  }, [reload])
+  }, [reload, user?.id, user?.role])
 
   async function remove() {
     if (!confirm(`Excluir o torneio "${t.name}"? Equipes, jogadores e jogos também serão excluídos.`)) return
@@ -43,6 +48,7 @@ export default function TournamentDetail() {
     }
   }
 
+  if (blocked) return <PrivateGate tournamentId={id} onJoined={setT} onUnblock={() => setBlocked(false)} />
   if (error && !t) return <Alert>{error}</Alert>
   if (!t || !options) return <Spinner />
 
@@ -53,23 +59,33 @@ export default function TournamentDetail() {
           <p className="eyebrow">{labelOf(options.categories, t.category)} · {labelOf(options.genders, t.gender)} · {labelOf(options.types, t.type)}</p>
           <h1>{t.name}</h1>
           <p>{labelOf(options.formats, t.format)} · {t.teamCount}/{t.numberOfTeams} equipes · {t.status === 'SORTEADO' ? 'Sorteio realizado' : 'Em configuração'}</p>
+          <p className="header-owner">
+            {t.ownerName ? `Organizado por ${t.ownerName}` : 'Organizado pela administração'}
+            {t.canEdit && user?.role !== 'ROOT' && <span className="tag tag-owner">Você organiza</span>}
+            {t.observing && <span className="tag tag-watch">Você acompanha</span>}
+          </p>
         </div>
-        {user && (
+        {t.canEdit ? (
           <div className="header-actions">
             <Link to={`/torneios/${id}/editar`} className="btn btn-ghost-light">Editar</Link>
             <button className="btn btn-ghost-light" onClick={remove}>Excluir</button>
+          </div>
+        ) : (
+          <div className="header-actions">
+            <FollowButton tournament={t} onChange={setT} onError={setError} />
           </div>
         )}
       </div>
 
       <nav className="tabs">
-                {TABS.filter((x) => x.key !== 'classificacao' || t.format !== 'MATA_MATA').map((x) => (
+        {TABS.filter((x) => x.key !== 'classificacao' || t.format !== 'MATA_MATA').map((x) => (
           <NavLink key={x.key} to={`/torneios/${id}${x.key ? '/' + x.key : ''}`} end className="tab">{x.label}</NavLink>
         ))}
       </nav>
       <Alert>{error}</Alert>
 
       {tab === '' && <Overview t={t} options={options} />}
+      {tab === '' && t.canEdit && <AccessPanel tournament={t} onChange={setT} />}
       {tab === 'equipes' && <TeamsTab tournament={t} onChange={reload} />}
       {tab === 'sorteio' && <DrawTab tournament={t} options={options} onChange={reload} />}
       {tab === 'jogos' && <MatchesTab tournament={t} />}

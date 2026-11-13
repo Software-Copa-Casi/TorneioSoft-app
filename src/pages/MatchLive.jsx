@@ -25,6 +25,11 @@ export default function MatchLive() {
   const load = useCallback(() => api.get(base).then(setLive).catch((e) => setError(e.message)), [base])
 
   useEffect(() => { load() }, [load])
+    // só o organizador do torneio (ou o root) controla a partida
+  const [editor, setEditor] = useState(false)
+  useEffect(() => {
+    api.get(`/tournaments/${id}`).then((t) => setEditor(t.canEdit)).catch(() => setEditor(false))
+  }, [id, user?.id, user?.role])
 
   // mantém placar e lances atualizados para quem acompanha de outro aparelho
   useEffect(() => {
@@ -75,7 +80,7 @@ export default function MatchLive() {
   }
 
   const status = match.status
-  const canEdit = user && status === 'EM_ANDAMENTO'
+  const canEdit = editor && status === 'EM_ANDAMENTO'
   const overtime = seconds > clock.matchDurationMinutes * 60
 
   return (
@@ -110,7 +115,7 @@ export default function MatchLive() {
         <SquadPanel squad={home} label="Mandante" />
 
         <section className="live-center">
-          {user && (
+          {editor && (
             <div className="live-actions">
               {status === 'AGENDADA' && (
                 <button className="btn btn-accent btn-lg big-action" disabled={busy} onClick={() => action('start')}>

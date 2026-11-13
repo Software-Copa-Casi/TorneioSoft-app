@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.js'
-import { useAuth } from '../../auth.jsx'
 import { Alert, Spinner, TeamBadge } from '../../components/ui.jsx'
 import DrawShow from '../../components/DrawShow.jsx'
 
 export default function DrawTab({ tournament, onChange }) {
-  const { user } = useAuth()
+  const canEdit = tournament.canEdit
   const [draw, setDraw] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -69,7 +68,7 @@ export default function DrawTab({ tournament, onChange }) {
                 O sorteio fica disponível quando todas estiverem cadastradas.</p>
               <Link to={`/torneios/${tournament.id}/equipes`} className="btn btn-primary">Cadastrar equipes</Link>
             </>
-          ) : !user ? (
+          ) : !canEdit ? (
             <p className="muted">O sorteio ainda não foi realizado.</p>
           ) : (
             <>
@@ -111,7 +110,7 @@ export default function DrawTab({ tournament, onChange }) {
             <div className="btn-row">
               <button className="btn btn-secondary" onClick={() => setShowing(true)}>Reapresentar sorteio</button>
               <Link to={`/torneios/${tournament.id}/jogos`} className="btn btn-primary">Ver rodadas</Link>
-              {user && <button className="btn btn-link danger" onClick={undo}>Desfazer sorteio</button>}
+              {canEdit && <button className="btn btn-link danger" onClick={undo}>Desfazer sorteio</button>}
             </div>
           </div>
           <DrawResult draw={draw} />

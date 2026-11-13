@@ -18,11 +18,14 @@ export default function Navbar() {
         <div className="nav-actions">
           {user ? (
             <>
-              <span className="nav-user">{user.username}</span>
+              <span className="nav-user" title={user.email || 'Administrador'}>{user.name}{user.role === 'ROOT' ? ' (admin)' : ''}</span>
               <button className="btn btn-ghost-light" onClick={() => { logout(); navigate('/') }}>Sair</button>
             </>
           ) : (
-            <Link to="/entrar" className="btn btn-accent">Entrar</Link>
+            <>
+              <Link to="/cadastro" className="btn btn-ghost-light nav-signup">Criar conta</Link>
+              <Link to="/entrar" className="btn btn-accent">Entrar</Link>
+            </>
           )}
         </div>
       </div>

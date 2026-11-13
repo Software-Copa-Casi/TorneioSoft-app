@@ -7,6 +7,7 @@ import TournamentForm from './pages/TournamentForm.jsx'
 import TournamentDetail from './pages/TournamentDetail.jsx'
 import TeamDetail from './pages/TeamDetail.jsx'
 import MatchLive from './pages/MatchLive.jsx'
+import Register from './pages/Register.jsx'
 
 function Private({ children }) {
   const { user, ready } = useAuth()
@@ -24,6 +25,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/entrar" element={<Login />} />
+          <Route path="/cadastro" element={<Register />} />
           <Route path="/torneios/novo" element={<Private><TournamentForm /></Private>} />
           <Route path="/torneios/:id/editar" element={<Private><TournamentForm /></Private>} />
           <Route path="/torneios/:id" element={<TournamentDetail />} />

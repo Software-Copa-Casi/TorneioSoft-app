@@ -33,11 +33,13 @@ export default function TournamentForm() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [busy, setBusy] = useState(false)
   const [locked, setLocked] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
 
   useEffect(() => {
     getOptions().then(setOptions).catch((e) => setError(e.message))
     if (id) {
       api.get(`/tournaments/${id}`).then((t) => {
+        if (!t.canEdit) { setForbidden(true); return }
         setLocked(t.status === 'SORTEADO')
         setForm({
           ...EMPTY, ...Object.fromEntries(Object.entries(t).map(([k, v]) => [k, v ?? EMPTY[k] ?? ''])),
@@ -104,7 +106,7 @@ export default function TournamentForm() {
       setBusy(false)
     }
   }
-
+  if (forbidden) return <Alert>Só o organizador do torneio pode editá-lo.</Alert>
   if (!options) return <Spinner />
 
   return (

@@ -2,12 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.js'
 import { Alert, Spinner, TeamBadge } from '../../components/ui.jsx'
-import { useAuth } from '../../auth.jsx'
 
 const STATUS_LABEL = { AGENDADA: 'Agendada', EM_ANDAMENTO: 'Em andamento', ENCERRADA: 'Encerrada' }
 
 export default function MatchesTab({ tournament }) {
-  const { user } = useAuth()
+  const canEdit = tournament.canEdit
   const [matches, setMatches] = useState(null)
   const [error, setError] = useState('')
   const [group, setGroup] = useState('')
@@ -73,7 +72,7 @@ export default function MatchesTab({ tournament }) {
                   <div className="match-footer">
                     <span className={`match-status st-${m.status}`}>{STATUS_LABEL[m.status]}</span>
                     <Link to={`/torneios/${tournament.id}/partidas/${m.id}`} className="btn btn-sm btn-secondary">
-                      {m.status === 'AGENDADA' ? (user ? 'Iniciar partida' : 'Detalhes') : m.status === 'EM_ANDAMENTO' ? 'Acompanhar' : 'Ver súmula'}
+                      {m.status === 'AGENDADA' ? (canEdit ? 'Iniciar partida' : 'Detalhes') : m.status === 'EM_ANDAMENTO' ? 'Acompanhar' : 'Ver súmula'}
                     </Link>
                   </div>
                 )}

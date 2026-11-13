@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
 import { Alert, Field } from '../components/ui.jsx'
 
@@ -17,7 +17,7 @@ export default function Login() {
     setBusy(true)
     setError('')
     try {
-      await login(username, password)
+      await login(username.trim(), password)
       navigate(location.state?.from || '/', { replace: true })
     } catch (err) {
       setError(err.message)
@@ -30,15 +30,18 @@ export default function Login() {
     <div className="auth-page">
       <form className="card auth-card" onSubmit={submit}>
         <h1>Entrar</h1>
-        <p className="muted">Acesso do organizador.</p>
+        <p className="muted">Entre para organizar ou acompanhar torneios.</p>
         <Alert>{error}</Alert>
-        <Field label="Usuário">
+        <Field label="E-mail">
           <input autoFocus value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
         </Field>
         <Field label="Senha">
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         </Field>
         <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Entrando...' : 'Entrar'}</button>
+        <p className="small muted auth-switch">
+          Ainda não tem conta? <Link to="/cadastro" state={location.state}>Criar conta</Link>
+        </p>
       </form>
     </div>
   )
