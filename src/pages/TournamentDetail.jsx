@@ -6,12 +6,14 @@ import { Alert, Spinner } from '../components/ui.jsx'
 import TeamsTab from './tabs/TeamsTab.jsx'
 import DrawTab from './tabs/DrawTab.jsx'
 import MatchesTab from './tabs/MatchesTab.jsx'
+import StandingsTab from './tabs/StandingsTab.jsx'
 
 const TABS = [
   { key: '', label: 'Visão geral' },
   { key: 'equipes', label: 'Equipes' },
   { key: 'sorteio', label: 'Sorteio' },
   { key: 'jogos', label: 'Rodadas' },
+  { key: 'classificacao', label: 'Classificação' },
 ]
 
 export default function TournamentDetail() {
@@ -59,7 +61,7 @@ export default function TournamentDetail() {
       </div>
 
       <nav className="tabs">
-        {TABS.map((x) => (
+                {TABS.filter((x) => x.key !== 'classificacao' || t.format !== 'MATA_MATA').map((x) => (
           <NavLink key={x.key} to={`/torneios/${id}${x.key ? '/' + x.key : ''}`} end className="tab">{x.label}</NavLink>
         ))}
       </nav>
@@ -69,6 +71,7 @@ export default function TournamentDetail() {
       {tab === 'equipes' && <TeamsTab tournament={t} onChange={reload} />}
       {tab === 'sorteio' && <DrawTab tournament={t} options={options} onChange={reload} />}
       {tab === 'jogos' && <MatchesTab tournament={t} />}
+      {tab === 'classificacao' && <StandingsTab tournament={t} options={options} />}
     </>
   )
 }
