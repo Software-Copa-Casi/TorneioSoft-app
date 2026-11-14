@@ -47,7 +47,7 @@ export default function TournamentForm() {
           knockoutTiebreaker: t.knockoutTiebreaker || 'PENALTIS',
           groupCount: t.groupCount ?? 2,
         })
-      }).catch((e) => setError(e.message))
+      }).catch((e) => { if (e.status === 403) setForbidden(true); else setError(e.message) })
     }
   }, [id])
 

@@ -36,8 +36,8 @@ export default function GoalDialog({ live, onSubmit, onClose }) {
     try {
       await onSubmit({
         teamId,
-        scorerId: Number(scorerId),
-        assistId: !ownGoal && assistId ? Number(assistId) : null,
+        scorerId: String(scorerId),
+        assistId: !ownGoal && assistId ? String(assistId) : null,
         ownGoal,
       })
       onClose()

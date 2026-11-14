@@ -1,4 +1,7 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+
+const MAX_IMAGE_CHARS = 1_900_000
+
 
 export function Field({ label, hint, error, required, children, className = '' }) {
   return (
@@ -36,22 +39,32 @@ export function TeamBadge({ name, logo, size = 40 }) {
     : <span className="badge-initials" style={{ width: size, height: size, fontSize: size * 0.38 }}>{initials}</span>
 }
 
-/** Lê uma imagem e reduz para no máximo `max` px, devolvendo um data URL JPEG/PNG. */
+/**
+ * Lê uma imagem e reduz para no máximo `max` px, devolvendo um data URL PNG ou JPEG
+ * (os únicos formatos, junto com WebP, que a API aceita). PNG que passe do limite vira JPEG.
+ */
 function resizeImage(file, max) {
   return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) { reject(new Error('Escolha um arquivo de imagem (PNG, JPEG ou WebP).')); return }
     const reader = new FileReader()
-    reader.onerror = reject
+    reader.onerror = () => reject(new Error('Não foi possível ler a imagem.'))
     reader.onload = () => {
       const img = new Image()
-      img.onerror = reject
+      img.onerror = () => reject(new Error('Não foi possível abrir a imagem. Use PNG, JPEG ou WebP.'))
       img.onload = () => {
         const scale = Math.min(1, max / Math.max(img.width, img.height))
         const canvas = document.createElement('canvas')
-        canvas.width = Math.round(img.width * scale)
-        canvas.height = Math.round(img.height * scale)
+        canvas.width = Math.round(img.width * scale) || 1
+        canvas.height = Math.round(img.height * scale) || 1
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
         const png = file.type === 'image/png' || file.type === 'image/svg+xml'
-        resolve(canvas.toDataURL(png ? 'image/png' : 'image/jpeg', 0.85))
+        let url = png ? canvas.toDataURL('image/png') : ''
+        for (const q of [0.85, 0.7, 0.5]) {
+          if (url && url.length <= MAX_IMAGE_CHARS) break
+          url = canvas.toDataURL('image/jpeg', q)
+        }
+        if (url.length > MAX_IMAGE_CHARS) reject(new Error('Imagem muito grande. Use uma imagem de até 1,5 MB.'))
+        else resolve(url)
       }
       img.src = reader.result
     }
@@ -61,6 +74,7 @@ function resizeImage(file, max) {
 
 export function ImageInput({ value, onChange, max = 400, round = false }) {
   const ref = useRef()
+  const [error, setError] = useState('')
   return (
     <div className="image-input">
       {value
@@ -72,14 +86,22 @@ export function ImageInput({ value, onChange, max = 400, round = false }) {
         </button>
         {value && <button type="button" className="btn btn-link btn-sm" onClick={() => onChange(null)}>Remover</button>}
       </div>
-      <input ref={ref} type="file" accept="image/*" hidden onChange={async (e) => {
+      {error && <span className="field-error">{error}</span>}
+      <input ref={ref} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={async (e) => {
         const f = e.target.files?.[0]
         e.target.value = ''
-        if (f) onChange(await resizeImage(f, max))
+        if (!f) return
+        try {
+          onChange(await resizeImage(f, max))
+          setError('')
+        } catch (err) {
+          setError(err.message)
+        }
       }} />
     </div>
   )
 }
+
 
 export function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {

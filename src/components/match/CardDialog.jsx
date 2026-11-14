@@ -20,7 +20,7 @@ export default function CardDialog({ live, onSubmit, onClose }) {
     setBusy(true)
     setError('')
     try {
-      await onSubmit({ playerId: Number(playerId), card })
+      await onSubmit({ playerId: String(playerId), card })
       onClose()
     } catch (err) {
       setError(err.message)

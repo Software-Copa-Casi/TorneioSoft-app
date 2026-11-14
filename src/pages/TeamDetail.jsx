@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
 import { api, getOptions, labelOf } from '../api/client.js'
 import { Alert, Field, ImageInput, Select, Spinner, TeamBadge } from '../components/ui.jsx'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 const EMPTY = { name: '', documentType: 'CPF', document: '', email: '', birthDate: '', gender: null, positions: [], photo: null }
 
@@ -30,13 +30,15 @@ export default function TeamDetail() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [busy, setBusy] = useState(false)
 
+  const navigate = useNavigate()
+
   const base = `/tournaments/${id}/teams/${teamId}`
   const loadPlayers = () => api.get(`${base}/players`).then(setPlayers)
 
   useEffect(() => {
     Promise.all([api.get(`/tournaments/${id}`), api.get(base), getOptions(), loadPlayers()])
       .then(([t, tm, o]) => { setTournament(t); setTeam(tm); setOptions(o) })
-      .catch((e) => setError(e.message))
+      .catch((e) => { if (e.status === 403) navigate(`/torneios/${id}`, { replace: true }); else setError(e.message) })
   }, [id, teamId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const canEdit = tournament?.canEdit

@@ -37,8 +37,23 @@ async function request(method, path, body) {
   }
   if (res.status === 204) return null
   const data = await res.json().catch(() => null)
-  if (!res.ok) throw new ApiError(data?.message || `Erro ${res.status}`, res.status, data?.fields)
+  if (!res.ok) throw new ApiError(data?.message || fallbackMessage(res), res.status, data?.fields)
   return data
+}
+
+/** Mensagem para quando a API não manda uma (ex.: erro do servidor ou do proxy). */
+function fallbackMessage(res) {
+  switch (res.status) {
+    case 403: return 'Você não tem permissão para fazer isso.'
+    case 404: return 'Não encontrado.'
+    case 413: return 'O arquivo enviado é grande demais.'
+    case 429: {
+      const s = Number(res.headers.get('Retry-After'))
+      const quando = s > 0 ? `em ${Math.ceil(s / 60)} min` : 'em alguns minutos'
+      return `Muitas tentativas. Tente de novo ${quando}.`
+    }
+    default: return res.status >= 500 ? 'Erro no servidor. Tente de novo em instantes.' : `Erro ${res.status}`
+  }
 }
 
 export const api = {

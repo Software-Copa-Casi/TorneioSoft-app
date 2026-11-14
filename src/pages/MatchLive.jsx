@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
 import { useAuth } from '../auth.jsx'
 import { Alert, Spinner, TeamBadge } from '../components/ui.jsx'
@@ -20,10 +20,14 @@ export default function MatchLive() {
   const [error, setError] = useState('')
   const [dialog, setDialog] = useState(null)
   const [busy, setBusy] = useState(false)
+  const navigate = useNavigate()
 
   const base = `/tournaments/${id}/matches/${matchId}`
-  const load = useCallback(() => api.get(base).then(setLive).catch((e) => setError(e.message)), [base])
 
+  const load = useCallback(() => api.get(base).then(setLive).catch((e) => {
+    if (e.status === 403) navigate(`/torneios/${id}`, { replace: true })
+    else setError(e.message)
+  }), [base, id, navigate])
   useEffect(() => { load() }, [load])
     // só o organizador do torneio (ou o root) controla a partida
   const [editor, setEditor] = useState(false)
