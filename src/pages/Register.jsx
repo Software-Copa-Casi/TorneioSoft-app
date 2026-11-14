@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
-import { Alert, Field } from '../components/ui.jsx'
+import { Alert, Field, PasswordInput } from '../components/ui.jsx'
+import { PRIVACY_VERSION, TERMS_VERSION } from '../legal/legalVersions.js'
 
-const UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
-  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
-
-const EMPTY = { name: '', cpf: '', email: '', phone: '', password: '', confirm: '', birthDate: '', country: 'Brasil', state: '', city: '' }
+const EMPTY = { name: '', cpf: '', birthDate: '', email: '', password: '', confirm: '', guardianConsent: false }
 
 const digits = (v) => v.replace(/\D/g, '')
 
@@ -15,12 +13,14 @@ function maskCpf(v) {
   return d.replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d)/, '$1.$2').replace(/(\d{3})(\d{1,2})$/, '$1-$2')
 }
 
-function maskPhone(v) {
-  const d = digits(v).slice(0, 11)
-  if (d.length <= 2) return d
-  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
-  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
-  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+const today = () => new Date().toISOString().slice(0, 10)
+
+/** Mesma regra do back end: menor de 18 anos na data de hoje. */
+function isMinor(birthDate) {
+  if (!birthDate) return false
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - 18)
+  return birthDate > d.toISOString().slice(0, 10)
 }
 
 /** Cadastro de usuário (RF02). */
@@ -33,24 +33,31 @@ export default function Register() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [busy, setBusy] = useState(false)
 
-  const brasil = form.country.trim().toLowerCase() === 'brasil'
   const set = (k, mask) => (e) => {
     const v = mask ? mask(e.target.value) : e.target.value
     setForm((f) => ({ ...f, [k]: v }))
     setFieldErrors((fe) => (fe[k] ? { ...fe, [k]: undefined } : fe))
   }
+  const minor = isMinor(form.birthDate)
   const passwordOk = form.password.length >= 8 && /\p{L}/u.test(form.password) && /\d/.test(form.password)
 
   async function submit(e) {
     e.preventDefault()
     setError('')
     setFieldErrors({})
+    if (minor && !form.guardianConsent) { setFieldErrors({ guardianConsent: 'Para menores de 18 anos, confirme a autorização do responsável.' }); return }
     if (!passwordOk) { setFieldErrors({ password: 'Use pelo menos 8 caracteres, com letras e números.' }); return }
     if (form.password !== form.confirm) { setFieldErrors({ confirm: 'As senhas não conferem.' }); return }
     setBusy(true)
     try {
-      const { confirm: _, ...data } = form // eslint-disable-line no-unused-vars
-      await register(data)
+      const { confirm: _, guardianConsent, ...data } = form // eslint-disable-line no-unused-vars
+      // versões que esta tela mostrou: a API grava junto com data, hora e IP como prova do aceite
+      await register({
+        ...data,
+        termsVersion: TERMS_VERSION,
+        privacyVersion: PRIVACY_VERSION,
+        guardianConsent: minor ? guardianConsent : null,
+      })
       navigate(location.state?.from || '/', { replace: true })
     } catch (err) {
       setError(err.message)
@@ -76,49 +83,45 @@ export default function Register() {
             <input value={form.cpf} onChange={set('cpf', maskCpf)} inputMode="numeric" placeholder="000.000.000-00" required />
           </Field>
           <Field label="Data de nascimento" required error={fe.birthDate}>
-            <input type="date" value={form.birthDate} onChange={set('birthDate')} max={new Date().toISOString().slice(0, 10)} required />
+            <input type="date" value={form.birthDate} onChange={set('birthDate')} max={today()} autoComplete="bday" required />
           </Field>
         </div>
-        <div className="form-row">
-          <Field label="E-mail" required error={fe.email}>
-            <input type="email" value={form.email} onChange={set('email')} autoComplete="email" maxLength={150} required />
-          </Field>
-          <Field label="Telefone" required error={fe.phone}>
-            <input type="tel" value={form.phone} onChange={set('phone', maskPhone)} autoComplete="tel" placeholder="(00) 00000-0000" required />
-          </Field>
-        </div>
-
-        <fieldset className="register-address">
-          <legend>Endereço</legend>
-          <div className="form-row form-row-3">
-            <Field label="País" required error={fe.country}>
-              <input value={form.country} onChange={set('country')} autoComplete="country-name" maxLength={80} required />
-            </Field>
-            <Field label="Estado" required error={fe.state}>
-              {brasil ? (
-                <select value={form.state} onChange={set('state')} required>
-                  <option value="">UF</option>
-                  {UFS.map((uf) => <option key={uf} value={uf}>{uf}</option>)}
-                </select>
-              ) : (
-                <input value={form.state} onChange={set('state')} maxLength={80} required />
-              )}
-            </Field>
-            <Field label="Cidade" required error={fe.city}>
-              <input value={form.city} onChange={set('city')} autoComplete="address-level2" maxLength={120} required />
-            </Field>
-          </div>
-        </fieldset>
+        <Field label="E-mail" required error={fe.email}>
+          <input type="email" value={form.email} onChange={set('email')} autoComplete="email" maxLength={150} required />
+        </Field>
 
         <div className="form-row">
           <Field label="Senha" required error={fe.password} hint="Mínimo de 8 caracteres, com letras e números.">
-            <input type="password" value={form.password} onChange={set('password')} autoComplete="new-password" maxLength={72} required />
+            <PasswordInput value={form.password} onChange={set('password')} autoComplete="new-password" maxLength={72} required />
           </Field>
           <Field label="Confirmar senha" required error={fe.confirm}>
-            <input type="password" value={form.confirm} onChange={set('confirm')} autoComplete="new-password" maxLength={72} required />
+            <PasswordInput value={form.confirm} onChange={set('confirm')} autoComplete="new-password" maxLength={72} required />
           </Field>
         </div>
 
+        {minor && (
+          <label className={`check-field ${fe.guardianConsent ? 'has-error' : ''}`}>
+            <input
+              type="checkbox"
+              checked={form.guardianConsent}
+              onChange={(e) => {
+                setForm((f) => ({ ...f, guardianConsent: e.target.checked }))
+                setFieldErrors((x) => ({ ...x, guardianConsent: undefined }))
+              }}
+            />
+            <span>
+              Tenho menos de 18 anos e meu pai, mãe ou responsável legal leu a{' '}
+              <Link to="/privacidade" target="_blank" rel="noopener">Política de Privacidade</Link> e autoriza o meu cadastro.
+              {fe.guardianConsent && <span className="field-error" style={{ display: 'block' }}>{fe.guardianConsent}</span>}
+            </span>
+          </label>
+        )}
+
+        <p className="consent-note">
+          Ao clicar em Criar conta, você concorda com nossos{' '}
+          <Link to="/termos" target="_blank" rel="noopener">Termos de Uso</Link> e declara estar ciente da nossa{' '}
+          <Link to="/privacidade" target="_blank" rel="noopener">Política de Privacidade</Link>.
+        </p>
         <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Criando conta...' : 'Criar conta'}</button>
         <p className="small muted auth-switch">
           Já tem conta? <Link to="/entrar" state={location.state}>Entrar</Link>

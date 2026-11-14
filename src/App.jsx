@@ -8,6 +8,10 @@ import TournamentDetail from './pages/TournamentDetail.jsx'
 import TeamDetail from './pages/TeamDetail.jsx'
 import MatchLive from './pages/MatchLive.jsx'
 import Register from './pages/Register.jsx'
+import Footer from './components/Footer.jsx'
+import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
+import TermsOfUse from './pages/TermsOfUse.jsx'
+import './legal/legal.css'
 
 function Private({ children }) {
   const { user, ready } = useAuth()
@@ -33,8 +37,13 @@ export default function App() {
           <Route path="/torneios/:id/equipes/:teamId" element={<TeamDetail />} />
           <Route path="/torneios/:id/partidas/:matchId" element={<MatchLive />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/privacidade" element={<PrivacyPolicy />} />
+          <Route path="/termos" element={<TermsOfUse />} />
+
+
         </Routes>
       </main>
+      <Footer />
     </>
   )
 }

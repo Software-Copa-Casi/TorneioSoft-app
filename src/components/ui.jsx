@@ -111,3 +111,26 @@ export function readFileAsDataUrl(file) {
     r.readAsDataURL(file)
   })
 }
+export function PasswordInput(props) {
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div className="password-input" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <input
+        {...props}
+        type={visible ? 'text' : 'password'}
+        style={{ paddingRight: '4.5rem', width: '100%', ...props.style }}
+      />
+      <button
+        type="button"
+        className="btn btn-link btn-sm"
+        onClick={() => setVisible((v) => !v)}
+        tabIndex={-1}
+        aria-label={visible ? 'Ocultar senha' : 'Mostrar senha'}
+        style={{ position: 'absolute', right: '0.5rem' }}
+      >
+        {visible ? 'Ocultar' : 'Mostrar'}
+      </button>
+    </div>
+  )
+}
