@@ -43,12 +43,27 @@ export function AuthProvider({ children }) {
     return api.post('/auth/resend-confirmation', { email })
   }
 
+  /** "Esqueci minha senha": pede o link. A resposta é sempre a mesma, exista a conta ou não. */
+  async function forgotPassword(email) {
+    return api.post('/auth/forgot-password', { email })
+  }
+
+  /** Confere se o link de nova senha ainda vale (não gasta o link). Devolve { valid }. */
+  async function checkResetToken(token) {
+    return api.post('/auth/reset-password/check', { token })
+  }
+
+  /** Troca a senha pelo link do e-mail e já entra. */
+  async function resetPassword(token, password) {
+    start(await api.post('/auth/reset-password', { token, password }))
+  }
+
   function logout() {
     setToken(null)
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, ready, login, register, confirmEmail, resendConfirmation, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, ready, login, register, confirmEmail, resendConfirmation, forgotPassword, checkResetToken, resetPassword, logout }}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => useContext(AuthContext)

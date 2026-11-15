@@ -50,6 +50,9 @@ export default function Login() {
         <Field label="Senha">
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         </Field>
+        <p className="small forgot-link">
+          <Link to="/recuperar-senha" state={{ email: username.trim() }}>Esqueci minha senha</Link>
+        </p>
         <button className="btn btn-primary btn-block" disabled={busy}>{busy ? 'Entrando...' : 'Entrar'}</button>
         <p className="small muted auth-switch">
           Ainda não tem conta? <Link to="/cadastro" state={location.state}>Criar conta</Link>

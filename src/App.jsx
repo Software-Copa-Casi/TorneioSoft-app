@@ -10,6 +10,8 @@ import MatchLive from './pages/MatchLive.jsx'
 import Register from './pages/Register.jsx'
 import Footer from './components/Footer.jsx'
 import ConfirmEmail from './pages/ConfirmEmail.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
+import ResetPassword from './pages/ResetPassword.jsx'
 import { Alert } from './components/ui.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsOfUse from './pages/TermsOfUse.jsx'
@@ -48,6 +50,8 @@ export default function App() {
           <Route path="/torneios/:id/partidas/:matchId" element={<MatchLive />} />
           <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/confirmar-email" element={<ConfirmEmail />} />
+          <Route path="/recuperar-senha" element={<ForgotPassword />} />
+          <Route path="/redefinir-senha" element={<ResetPassword />} />
           <Route path="/privacidade" element={<PrivacyPolicy />} />
           <Route path="/termos" element={<TermsOfUse />} />
 
