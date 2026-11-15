@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { api, getOptions, labelOf } from '../api/client.js'
 import { useAuth } from '../auth.jsx'
 import { Alert, Spinner } from '../components/ui.jsx'
+import { PlanLimitNotice, useCanCreateTournament } from '../components/PlanLimit.jsx'
 
 const SCOPES = [
   { key: 'todos', label: 'Todos' },
@@ -17,7 +18,8 @@ const EMPTY_TEXT = {
 }
 
 export default function Home() {
-  const { user, ready } = useAuth()
+  const { user, ready, refreshPlan } = useAuth()
+  const canCreate = useCanCreateTournament()
   const [params, setParams] = useSearchParams()
   const scope = user && SCOPES.some((s) => s.key === params.get('escopo')) ? params.get('escopo') : 'todos'
   const [tournaments, setTournaments] = useState(null)
@@ -30,6 +32,8 @@ export default function Home() {
     Promise.all([api.get(`/tournaments?escopo=${scope}`), getOptions()])
       .then(([t, o]) => { setTournaments(t); setOptions(o); setError('') })
       .catch((e) => setError(e.message))
+    // o limite do plano muda quando um torneio termina ou é apagado
+    if (user && user.role !== 'ROOT') refreshPlan()
   }, [scope, ready, user?.id, user?.role])
 
   return (
@@ -39,17 +43,19 @@ export default function Home() {
           <h1>Torneios de futsal organizados do sorteio à final</h1>
           <p>Crie o torneio, cadastre equipes e jogadores, faça o sorteio ao vivo e gere as rodadas automaticamente.</p>
           {user
-            ? <Link to="/torneios/novo" className="btn btn-accent btn-lg">Criar torneio</Link>
+            ? <CreateButton canCreate={canCreate} className="btn btn-accent btn-lg">Criar torneio</CreateButton>
             : <Link to="/cadastro" className="btn btn-accent btn-lg">Criar conta grátis</Link>}
         </div>
       </section>
+
+      {user && !canCreate && <PlanLimitNotice />}
 
       {user && <JoinByCode />}
 
       <section>
         <div className="section-head">
           <h2>Torneios</h2>
-          {user && <Link to="/torneios/novo" className="btn btn-primary">Novo torneio</Link>}
+          {user && <CreateButton canCreate={canCreate} className="btn btn-primary">Novo torneio</CreateButton>}
         </div>
         {user && (
           <div className="segmented home-scopes" role="tablist" aria-label="Quais torneios mostrar">
@@ -66,7 +72,7 @@ export default function Home() {
         {tournaments && tournaments.length === 0 && (
           <div className="empty">
             <p>{EMPTY_TEXT[scope]}</p>
-            {user && scope !== 'observando' && <Link to="/torneios/novo" className="btn btn-primary">Criar torneio</Link>}
+            {user && scope !== 'observando' && <CreateButton canCreate={canCreate} className="btn btn-primary">Criar torneio</CreateButton>}
           </div>
         )}
         <div className="card-grid">
@@ -97,6 +103,16 @@ export default function Home() {
         </div>
       </section>
     </>
+  )
+}
+
+/** Botão de criar torneio: desabilitado quando o plano gratuito chegou ao limite. */
+function CreateButton({ canCreate, className, children }) {
+  if (canCreate) return <Link to="/torneios/novo" className={className}>{children}</Link>
+  return (
+    <button type="button" className={className} disabled title="O plano gratuito permite 1 torneio por vez">
+      {children}
+    </button>
   )
 }
 

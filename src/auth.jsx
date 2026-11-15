@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { api, getToken, setToken } from './api/client.js'
 
 const AuthContext = createContext(null)
@@ -6,6 +6,8 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [ready, setReady] = useState(false)
+  // plano do usuário: { plan, label, tournamentLimit, tournamentsUsed, canCreateTournament }. Nulo para o root (sem limite).
+  const [plan, setPlan] = useState(null)
 
   useEffect(() => {
     if (!getToken()) { setReady(true); return }
@@ -29,13 +31,24 @@ export function AuthProvider({ children }) {
     }
   }, [loggedIn])
 
+  /** Busca de novo o plano e quanto do limite já foi usado (chame depois de criar ou apagar torneio). */
+  const refreshPlan = useCallback(() => {
+    if (!getToken()) { setPlan(null); return Promise.resolve(null) }
+    return api.get('/plan/me').then((p) => { setPlan(p); return p }).catch(() => null)
+  }, [])
+
+  useEffect(() => {
+    if (user && user.role !== 'ROOT') refreshPlan()
+    else setPlan(null)
+  }, [user?.id, user?.role, refreshPlan])
+
   useEffect(() => {
     const onLogout = () => setUser(null)
     window.addEventListener('copacasi:logout', onLogout)
     return () => window.removeEventListener('copacasi:logout', onLogout)
   }, [])
 
-  // o back end devolve { token, user: { id, name, email, role } } no login e no cadastro
+  // o back end devolve { token, user: { id, name, email, role, plan } } no login e no cadastro
   function start(res) {
     setToken(res.token)
     setUser(res.user)
@@ -80,7 +93,7 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, ready, login, register, confirmEmail, resendConfirmation, forgotPassword, checkResetToken, resetPassword, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, ready, plan, refreshPlan, login, register, confirmEmail, resendConfirmation, forgotPassword, checkResetToken, resetPassword, logout }}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => useContext(AuthContext)
