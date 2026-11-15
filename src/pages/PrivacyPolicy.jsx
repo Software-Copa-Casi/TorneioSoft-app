@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
       <table className="legal-table">
         <thead><tr><th>Finalidade</th><th>Base legal (LGPD)</th></tr></thead>
         <tbody>
-          <tr><td>Criar e manter a sua conta, permitir o login e identificar você de forma única (CPF)</td><td>Execução de contrato (art. 7º, V)</td></tr>
+          <tr><td>Criar e manter a sua conta, confirmar que o e-mail é seu (link de confirmação), permitir o login e identificar você de forma única (CPF)</td><td>Execução de contrato (art. 7º, V)</td></tr>
           <tr><td>Aplicar os limites de idade de torneios que tenham essa regra e saber se você é menor de idade (data de nascimento)</td><td>Execução de contrato (art. 7º, V)</td></tr>
           <tr><td>Organizar torneios, equipes, jogadores, partidas, classificação e estatísticas</td><td>Execução de contrato (art. 7º, V)</td></tr>
           <tr><td>Guardar a prova de que você aceitou os Termos e esta política</td><td>Cumprimento de obrigação legal e exercício regular de direitos (art. 7º, II e VI)</td></tr>
@@ -73,6 +73,8 @@ export default function PrivacyPolicy() {
 
       <h2>5. Por quanto tempo guardamos</h2>
       <ul>
+        <li>Cadastro não confirmado: se o e-mail não for confirmado pelo link enviado, a conta e os dados dela
+          são apagados automaticamente em 7 dias.</li>
         <li>Dados da conta: enquanto a conta existir. Quando você pedir a exclusão, apagamos em até 30 dias.</li>
         <li>Prova de aceite e registros de acesso: pelo prazo exigido por lei (o Marco Civil da Internet exige
           ao menos 6 meses para registros de acesso) e, para defesa em eventual processo, até 5 anos após o

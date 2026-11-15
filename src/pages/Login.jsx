@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
+import { ResendButton } from '../components/CheckEmail.jsx'
 import { Alert, Field } from '../components/ui.jsx'
 
 export default function Login() {
@@ -11,16 +12,20 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // conta criada mas e-mail ainda não confirmado: mostra o botão de reenviar o link
+  const [unverified, setUnverified] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
     setBusy(true)
     setError('')
+    setUnverified(false)
     try {
       await login(username.trim(), password)
       navigate(location.state?.from || '/', { replace: true })
     } catch (err) {
       setError(err.message)
+      setUnverified(err.code === 'EMAIL_NOT_VERIFIED')
     } finally {
       setBusy(false)
     }
@@ -31,7 +36,14 @@ export default function Login() {
       <form className="card auth-card" onSubmit={submit}>
         <h1>Entrar</h1>
         <p className="muted">Entre para organizar ou acompanhar torneios.</p>
-        <Alert>{error}</Alert>
+        {unverified ? (
+          <div className="unverified-box">
+            <Alert kind="info">{error}</Alert>
+            <ResendButton email={username.trim()} startCooling={false} />
+          </div>
+        ) : (
+          <Alert>{error}</Alert>
+        )}
         <Field label="E-mail">
           <input autoFocus value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" required />
         </Field>

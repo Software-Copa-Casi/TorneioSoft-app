@@ -17,3 +17,11 @@
 .site-footer { border-top: 1px solid var(--line); background: var(--surface); color: var(--muted); font-size: .85rem; }
 .site-footer-inner { max-width: 1160px; margin: 0 auto; padding: 16px; display: flex; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
 .site-footer nav { display: flex; gap: 16px; flex-wrap: wrap; }
+
+/* Confirmação de e-mail */
+.check-email { text-align: center; justify-items: center; }
+.check-email-icon { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem; background: var(--green-100); color: var(--green-700); }
+.check-email p { margin: 0; }
+.unverified-box { display: grid; gap: 8px; }
+.unverified-box .alert { margin-bottom: 0; }
+.btn-link { border: 0; cursor: pointer; font: inherit; }

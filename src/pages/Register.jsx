@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth.jsx'
+import CheckEmail from '../components/CheckEmail.jsx'
 import { Alert, Field, PasswordInput } from '../components/ui.jsx'
 import { PRIVACY_VERSION, TERMS_VERSION } from '../legal/legalVersions.js'
 
@@ -26,12 +27,13 @@ function isMinor(birthDate) {
 /** Cadastro de usuário (RF02). */
 export default function Register() {
   const { register } = useAuth()
-  const navigate = useNavigate()
   const location = useLocation()
   const [form, setForm] = useState(EMPTY)
   const [error, setError] = useState('')
   const [fieldErrors, setFieldErrors] = useState({})
   const [busy, setBusy] = useState(false)
+  // depois do cadastro: e-mail para onde foi o link de confirmação
+  const [pendingEmail, setPendingEmail] = useState('')
 
   const set = (k, mask) => (e) => {
     const v = mask ? mask(e.target.value) : e.target.value
@@ -52,13 +54,13 @@ export default function Register() {
     try {
       const { confirm: _, guardianConsent, ...data } = form // eslint-disable-line no-unused-vars
       // versões que esta tela mostrou: a API grava junto com data, hora e IP como prova do aceite
-      await register({
+      const res = await register({
         ...data,
         termsVersion: TERMS_VERSION,
         privacyVersion: PRIVACY_VERSION,
         guardianConsent: minor ? guardianConsent : null,
       })
-      navigate(location.state?.from || '/', { replace: true })
+      setPendingEmail(res?.email || form.email.trim())
     } catch (err) {
       setError(err.message)
       setFieldErrors(err.fields || {})
@@ -66,6 +68,8 @@ export default function Register() {
       setBusy(false)
     }
   }
+
+  if (pendingEmail) return <CheckEmail email={pendingEmail} onBack={() => setPendingEmail('')} />
 
   const fe = fieldErrors
   return (

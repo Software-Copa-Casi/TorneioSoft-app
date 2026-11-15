@@ -12,10 +12,11 @@ export function setToken(token) {
 }
 
 export class ApiError extends Error {
-  constructor(message, status, fields) {
+  constructor(message, status, fields, code) {
     super(message)
     this.status = status
     this.fields = fields || {}
+    this.code = code // ex.: 'EMAIL_NOT_VERIFIED' no login
   }
 }
 
@@ -37,7 +38,7 @@ async function request(method, path, body) {
   }
   if (res.status === 204) return null
   const data = await res.json().catch(() => null)
-  if (!res.ok) throw new ApiError(data?.message || fallbackMessage(res), res.status, data?.fields)
+  if (!res.ok) throw new ApiError(data?.message || fallbackMessage(res), res.status, data?.fields, data?.code)
   return data
 }
 

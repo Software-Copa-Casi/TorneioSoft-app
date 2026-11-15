@@ -9,6 +9,8 @@ import TeamDetail from './pages/TeamDetail.jsx'
 import MatchLive from './pages/MatchLive.jsx'
 import Register from './pages/Register.jsx'
 import Footer from './components/Footer.jsx'
+import ConfirmEmail from './pages/ConfirmEmail.jsx'
+import { Alert } from './components/ui.jsx'
 import PrivacyPolicy from './pages/PrivacyPolicy.jsx'
 import TermsOfUse from './pages/TermsOfUse.jsx'
 import './legal/legal.css'
@@ -21,11 +23,19 @@ function Private({ children }) {
   return children
 }
 
+/** Aviso curto passado na navegação, ex.: navigate('/', { state: { flash: 'E-mail confirmado!' } }). */
+function Flash() {
+  const location = useLocation()
+  const text = location.state?.flash
+  return text ? <Alert kind="success">{text}</Alert> : null
+}
+
 export default function App() {
   return (
     <>
       <Navbar />
       <main className="container">
+        <Flash />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/entrar" element={<Login />} />
@@ -37,6 +47,7 @@ export default function App() {
           <Route path="/torneios/:id/equipes/:teamId" element={<TeamDetail />} />
           <Route path="/torneios/:id/partidas/:matchId" element={<MatchLive />} />
           <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/confirmar-email" element={<ConfirmEmail />} />
           <Route path="/privacidade" element={<PrivacyPolicy />} />
           <Route path="/termos" element={<TermsOfUse />} />
 

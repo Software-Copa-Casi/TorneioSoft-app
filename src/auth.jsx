@@ -28,8 +28,19 @@ export function AuthProvider({ children }) {
     start(await api.post('/auth/login', { username, password }))
   }
 
+  /** Cria a conta pendente. Não entra: devolve { message, email } e a pessoa precisa confirmar o e-mail. */
   async function register(data) {
-    start(await api.post('/auth/register', data))
+    return api.post('/auth/register', data)
+  }
+
+  /** Link do e-mail: confirma a conta e já entra. */
+  async function confirmEmail(token) {
+    start(await api.post('/auth/confirm-email', { token }))
+  }
+
+  /** Pede outro link de confirmação. A resposta é sempre a mesma, exista a conta ou não. */
+  async function resendConfirmation(email) {
+    return api.post('/auth/resend-confirmation', { email })
   }
 
   function logout() {
@@ -37,7 +48,7 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  return <AuthContext.Provider value={{ user, ready, login, register, logout }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, ready, login, register, confirmEmail, resendConfirmation, logout }}>{children}</AuthContext.Provider>
 }
 
 export const useAuth = () => useContext(AuthContext)
