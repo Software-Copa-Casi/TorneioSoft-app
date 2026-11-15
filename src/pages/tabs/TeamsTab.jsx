@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.js'
-import { useAuth } from '../../auth.jsx'
 import { Alert, Field, ImageInput, Spinner, TeamBadge } from '../../components/ui.jsx'
 
 const EMPTY = { name: '', email: '', logo: null, description: '' }
 
 export default function TeamsTab({ tournament, onChange }) {
-  const { user } = useAuth()
+  const canEdit = tournament.canEdit
   const [teams, setTeams] = useState(null)
   const [form, setForm] = useState(EMPTY)
   const [editing, setEditing] = useState(null)
@@ -20,7 +19,7 @@ export default function TeamsTab({ tournament, onChange }) {
 
   const full = teams && teams.length >= tournament.numberOfTeams
   const drawn = tournament.status === 'SORTEADO'
-  const showForm = user && (editing || (!full && !drawn))
+  const showForm = canEdit && (editing || (!full && !drawn))
 
   async function submit(e) {
     e.preventDefault()
@@ -61,7 +60,7 @@ export default function TeamsTab({ tournament, onChange }) {
         <div className="section-head">
           <h2>Equipes <span className="muted">({teams.length}/{tournament.numberOfTeams})</span></h2>
         </div>
-        {full && !drawn && user && (
+        {full && !drawn && canEdit && (
           <Alert kind="success">
             Todas as equipes foram cadastradas. <Link to={`/torneios/${tournament.id}/sorteio`}>Ir para o sorteio →</Link>
           </Alert>
@@ -80,12 +79,12 @@ export default function TeamsTab({ tournament, onChange }) {
               </div>
               <div className="team-actions">
                 <Link to={`/torneios/${tournament.id}/equipes/${team.id}`} className="btn btn-secondary btn-sm">Jogadores</Link>
-                {user && <button className="btn btn-link btn-sm" onClick={() => {
+                {canEdit && <button className="btn btn-link btn-sm" onClick={() => {
                   setEditing(team.id)
                   setForm({ name: team.name, email: team.email || '', logo: team.logo, description: team.description || '' })
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}>Editar</button>}
-                {user && !drawn && <button className="btn btn-link btn-sm danger" onClick={() => remove(team)}>Remover</button>}
+                {canEdit && !drawn && <button className="btn btn-link btn-sm danger" onClick={() => remove(team)}>Remover</button>}
               </div>
             </li>
           ))}

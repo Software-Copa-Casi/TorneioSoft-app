@@ -1,3 +1,6 @@
 node_modules/
 dist/
-.env.local
+# variáveis de ambiente: nunca vão para o GitHub (só o .env.example)
+.env
+.env.*
+!.env.example

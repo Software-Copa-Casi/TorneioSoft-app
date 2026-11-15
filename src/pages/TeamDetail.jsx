@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
 import { api, getOptions, labelOf } from '../api/client.js'
-import { useAuth } from '../auth.jsx'
 import { Alert, Field, ImageInput, Select, Spinner, TeamBadge } from '../components/ui.jsx'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 const EMPTY = { name: '', documentType: 'CPF', document: '', email: '', birthDate: '', gender: null, positions: [], photo: null }
 
@@ -21,7 +20,6 @@ function age(birth) {
 
 export default function TeamDetail() {
   const { id, teamId } = useParams()
-  const { user } = useAuth()
   const [tournament, setTournament] = useState(null)
   const [team, setTeam] = useState(null)
   const [players, setPlayers] = useState(null)
@@ -32,18 +30,21 @@ export default function TeamDetail() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [busy, setBusy] = useState(false)
 
+  const navigate = useNavigate()
+
   const base = `/tournaments/${id}/teams/${teamId}`
   const loadPlayers = () => api.get(`${base}/players`).then(setPlayers)
 
   useEffect(() => {
     Promise.all([api.get(`/tournaments/${id}`), api.get(base), getOptions(), loadPlayers()])
       .then(([t, tm, o]) => { setTournament(t); setTeam(tm); setOptions(o) })
-      .catch((e) => setError(e.message))
+      .catch((e) => { if (e.status === 403) navigate(`/torneios/${id}`, { replace: true }); else setError(e.message) })
   }, [id, teamId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const canEdit = tournament?.canEdit
   const max = tournament?.maxPlayersPerSquad
   const full = max && players && players.length >= max
-  const showForm = user && (editing || !full)
+  const showForm = canEdit && (editing || !full)
 
   function togglePosition(p) {
     setForm((f) => ({ ...f, positions: f.positions.includes(p) ? f.positions.filter((x) => x !== p) : [...f.positions, p] }))
@@ -112,9 +113,9 @@ export default function TeamDetail() {
                   <span className="small muted">
                     {p.positions.map((x) => labelOf(options.positions, x)).join(', ')} · {age(p.birthDate)} anos · {labelOf(options.playerGenders, p.gender)}
                   </span>
-                  {user && <span className="small muted">{p.documentType}: {p.documentType === 'CPF' ? formatCpf(p.document) : p.document}</span>}
+                  {canEdit && <span className="small muted">{p.documentType}: {p.documentType === 'CPF' ? formatCpf(p.document) : p.document}</span>}
                 </div>
-                {user && (
+                {canEdit && (
                   <div className="team-actions">
                     <button className="btn btn-link btn-sm" onClick={() => {
                       setEditing(p.id)
@@ -178,7 +179,7 @@ export default function TeamDetail() {
             </div>
           </form>
         )}
-        {user && full && !editing && <Alert kind="info">A equipe atingiu o máximo de {max} jogadores.</Alert>}
+        {canEdit && full && !editing && <Alert kind="info">A equipe atingiu o máximo de {max} jogadores.</Alert>}
       </div>
     </>
   )
