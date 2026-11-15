@@ -358,3 +358,13 @@ input:disabled, select:disabled { background: #f0f3f1; color: var(--muted); }
 .private-icon { font-size: 2.4rem; }
 .private-gate h1 { margin: 0; }
 .private-form { display: grid; gap: 12px; }
+/* Plano do usuário */
+.plan-badge { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px; }
+.plan-FREE { background: rgba(255, 255, 255, .15); color: #e6f2ec; }
+.plan-PRO { background: var(--accent); color: var(--accent-ink); }
+.plan-limit { display: flex; gap: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 24px; border-left: 4px solid var(--accent); }
+.plan-limit h3 { margin: 0 0 6px; }
+.plan-limit p { margin: 0 0 6px; max-width: 620px; }
+.plan-limit-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.plan-limit-actions [aria-disabled="true"] { cursor: default; opacity: .85; }
+@media (max-width: 640px) { .plan-limit-actions { width: 100%; } .plan-limit-actions .btn { flex: 1; text-align: center; } }

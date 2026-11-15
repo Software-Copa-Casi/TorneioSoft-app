@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../auth.jsx'
+import { PlanLimitNotice, useCanCreateTournament } from '../components/PlanLimit.jsx'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, getOptions } from '../api/client.js'
 import { Alert, Field, ImageInput, Select, Spinner, readFileAsDataUrl } from '../components/ui.jsx'
@@ -34,6 +36,9 @@ export default function TournamentForm() {
   const [busy, setBusy] = useState(false)
   const [locked, setLocked] = useState(false)
   const [forbidden, setForbidden] = useState(false)
+  const [planLimit, setPlanLimit] = useState('')
+  const { refreshPlan } = useAuth()
+  const canCreate = useCanCreateTournament()
 
   useEffect(() => {
     getOptions().then(setOptions).catch((e) => setError(e.message))
@@ -97,8 +102,10 @@ export default function TournamentForm() {
     }
     try {
       const saved = id ? await api.put(`/tournaments/${id}`, body) : await api.post('/tournaments', body)
+      if (!id) refreshPlan()
       navigate(`/torneios/${saved.id}${id ? '' : '/equipes'}`)
     } catch (err) {
+      if (err.code === 'PLAN_LIMIT') { setPlanLimit(err.message); refreshPlan(); window.scrollTo({ top: 0, behavior: 'smooth' }); return }
       setError(err.message)
       setFieldErrors(err.fields || {})
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -107,6 +114,8 @@ export default function TournamentForm() {
     }
   }
   if (forbidden) return <Alert>Só o organizador do torneio pode editá-lo.</Alert>
+  // plano gratuito no limite: nem mostra o formulário de torneio novo
+  if (!id && (planLimit || !canCreate)) return <div className="form-page"><PlanLimitNotice message={planLimit || undefined} /></div>
   if (!options) return <Spinner />
 
   return (
