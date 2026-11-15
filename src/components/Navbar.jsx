@@ -11,7 +11,7 @@ export default function Navbar() {
       <div className="navbar-inner">
         <Link to="/" className="brand">
           <img src="/ball.svg" alt="" width="28" height="28" />
-          <span>Copa Casi</span>
+          <span>TorneioSoft</span>
         </Link>
         <nav className="nav-links">
           <NavLink to="/" end>Torneios</NavLink>
