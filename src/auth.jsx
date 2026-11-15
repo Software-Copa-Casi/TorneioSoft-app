@@ -12,6 +12,23 @@ export function AuthProvider({ children }) {
     api.get('/auth/me').then(setUser).catch(() => setToken(null)).finally(() => setReady(true))
   }, [])
 
+  // Se a senha foi trocada (em outro aparelho ou por "esqueci minha senha"), a API recusa o token antigo
+  // na hora. Para uma aba parada também sair, confere a sessão a cada 30 s e ao voltar para a aba;
+  // o client.js recebe o 401 e dispara o logout.
+  const loggedIn = !!user
+  useEffect(() => {
+    if (!loggedIn) return undefined
+    const check = () => { if (document.visibilityState === 'visible') api.get('/auth/me').catch(() => {}) }
+    const timer = setInterval(check, 30000)
+    window.addEventListener('focus', check)
+    document.addEventListener('visibilitychange', check)
+    return () => {
+      clearInterval(timer)
+      window.removeEventListener('focus', check)
+      document.removeEventListener('visibilitychange', check)
+    }
+  }, [loggedIn])
+
   useEffect(() => {
     const onLogout = () => setUser(null)
     window.addEventListener('copacasi:logout', onLogout)
