@@ -187,6 +187,10 @@ input:disabled, select:disabled { background: #f0f3f1; color: var(--muted); }
 .team-header h1 { margin: 0; }
 .breadcrumb { font-size: .9rem; color: var(--muted); }
 .grid-doc { display: grid; grid-template-columns: 110px 1fr; gap: 10px; }
+.grid-name-shirt { display: grid; grid-template-columns: 1fr 76px; gap: 10px; }
+.shirt-number { display: inline-grid; place-items: center; min-width: 26px; height: 22px; padding: 0 5px; margin-right: 8px; border-radius: 6px; background: var(--green-700); color: #fff; font-size: .8rem; font-weight: 800; vertical-align: 1px; }
+.shirt-number.missing { background: var(--line); color: var(--muted); }
+.pnum { font-weight: 800; margin-right: 6px; font-variant-numeric: tabular-nums; }
 .positions { border: 0; padding: 0; margin: 0; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .chip { border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; cursor: pointer; font-size: .875rem; user-select: none; }

@@ -188,7 +188,7 @@ function SquadPanel({ squad, label }) {
         {squad.players.map((p) => (
           <li key={p.id} className={p.sentOff ? 'sent-off' : ''}>
             <span className="pos">{p.positions?.map((x) => POSITION_SHORT[x] || x)[0] ?? ''}</span>
-            <span className="pname">{p.name}</span>
+            <span className="pname">{p.shirtNumber != null && <span className="pnum">{p.shirtNumber}</span>}{p.name}</span>
             <span className="pstats">
               {p.goals > 0 && <span title={`${p.goals} gol(s)`}>⚽{p.goals > 1 ? `×${p.goals}` : ''}</span>}
               {p.assists > 0 && <span className="assist" title={`${p.assists} assistência(s)`}>A{p.assists > 1 ? `×${p.assists}` : ''}</span>}

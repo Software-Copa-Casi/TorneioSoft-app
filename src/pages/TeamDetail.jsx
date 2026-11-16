@@ -3,7 +3,7 @@ import { api, getOptions, labelOf } from '../api/client.js'
 import { Alert, Field, ImageInput, Select, Spinner, TeamBadge } from '../components/ui.jsx'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
-const EMPTY = { name: '', documentType: 'CPF', document: '', email: '', birthDate: '', gender: null, positions: [], photo: null }
+const EMPTY = { name: '', shirtNumber: '', documentType: 'CPF', document: '', email: '', birthDate: '', gender: null, positions: [], photo: null }
 
 function formatCpf(v) {
   const d = v.replace(/\D/g, '').slice(0, 11)
@@ -57,8 +57,9 @@ export default function TeamDetail() {
     if (form.positions.length === 0) { setFieldErrors({ positions: 'Escolha ao menos uma posição' }); return }
     setBusy(true)
     try {
-      if (editing) await api.put(`${base}/players/${editing}`, form)
-      else await api.post(`${base}/players`, form)
+      const body = { ...form, shirtNumber: form.shirtNumber === '' ? null : Number(form.shirtNumber) }
+      if (editing) await api.put(`${base}/players/${editing}`, body)
+      else await api.post(`${base}/players`, body)
       setForm(EMPTY)
       setEditing(null)
       await loadPlayers()
@@ -109,7 +110,12 @@ export default function TeamDetail() {
               <li key={p.id} className="card player-item">
                 {p.photo ? <img src={p.photo} alt="" className="player-photo" /> : <TeamBadge name={p.name} size={48} />}
                 <div className="team-info">
-                  <strong>{p.name}</strong>
+                  <strong>
+                    {p.shirtNumber != null
+                      ? <span className="shirt-number" title="Número da camisa">{p.shirtNumber}</span>
+                      : canEdit && <span className="shirt-number missing" title="Sem número: edite para informar">?</span>}
+                    {p.name}
+                  </strong>
                   <span className="small muted">
                     {p.positions.map((x) => labelOf(options.positions, x)).join(', ')} · {age(p.birthDate)} anos · {labelOf(options.playerGenders, p.gender)}
                   </span>
@@ -119,7 +125,7 @@ export default function TeamDetail() {
                   <div className="team-actions">
                     <button className="btn btn-link btn-sm" onClick={() => {
                       setEditing(p.id)
-                      setForm({ ...EMPTY, ...p, email: p.email || '', document: p.documentType === 'CPF' ? formatCpf(p.document) : p.document })
+                      setForm({ ...EMPTY, ...p, shirtNumber: p.shirtNumber ?? '', email: p.email || '', document: p.documentType === 'CPF' ? formatCpf(p.document) : p.document })
                       window.scrollTo({ top: 0, behavior: 'smooth' })
                     }}>Editar</button>
                     <button className="btn btn-link btn-sm danger" onClick={() => remove(p)}>Remover</button>
@@ -134,9 +140,16 @@ export default function TeamDetail() {
           <form className="card side-form" onSubmit={submit}>
             <h3>{editing ? 'Editar jogador' : 'Cadastrar jogador'}</h3>
             <Alert>{error}</Alert>
-            <Field label="Nome" required error={fieldErrors.name}>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={150} />
-            </Field>
+            <div className="grid-name-shirt">
+              <Field label="Nome" required error={fieldErrors.name}>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={150} />
+              </Field>
+              <Field label="Camisa" required error={fieldErrors.shirtNumber}>
+                <input type="number" inputMode="numeric" min={1} max={99} step={1} value={form.shirtNumber} required
+                       placeholder="Nº"
+                       onChange={(e) => setForm({ ...form, shirtNumber: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
+              </Field>
+            </div>
             <div className="grid-doc">
               <Field label="Documento" required>
                 <select value={form.documentType} onChange={(e) => setForm({ ...form, documentType: e.target.value, document: '' })}>
