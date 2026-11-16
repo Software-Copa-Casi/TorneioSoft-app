@@ -72,7 +72,7 @@ export default function GoalDialog({ live, onSubmit, onClose }) {
         <Field label={ownGoal && opponent ? `Autor do gol contra (jogador do ${opponent.name})` : 'Jogador que fez o gol'} required>
           <select value={scorerId} onChange={(e) => { setScorerId(e.target.value); if (e.target.value === assistId) setAssistId('') }} disabled={!scoring} required>
             <option value="">{scoring ? 'Selecione...' : 'Escolha a equipe primeiro'}</option>
-            {scorerOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {scorerOptions.map((p) => <option key={p.id} value={p.id}>{p.shirtNumber != null ? `${p.shirtNumber} · ` : ''}{p.name}</option>)}
           </select>
         </Field>
 
@@ -80,7 +80,7 @@ export default function GoalDialog({ live, onSubmit, onClose }) {
           <Field label="Assistência (opcional)">
             <select value={assistId} onChange={(e) => setAssistId(e.target.value)} disabled={!scoring}>
               <option value="">Sem assistência</option>
-              {assistOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {assistOptions.map((p) => <option key={p.id} value={p.id}>{p.shirtNumber != null ? `${p.shirtNumber} · ` : ''}{p.name}</option>)}
             </select>
           </Field>
         )}
