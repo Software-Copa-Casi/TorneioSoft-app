@@ -50,7 +50,7 @@ export default function CardDialog({ live, onSubmit, onClose }) {
           <select value={playerId} onChange={(e) => setPlayerId(e.target.value)} disabled={!squad} required>
             <option value="">{squad ? 'Selecione...' : 'Escolha a equipe primeiro'}</option>
             {players.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}{p.yellowCards ? ` (${p.yellowCards} amarelo)` : ''}</option>
+              <option key={p.id} value={p.id}>{p.shirtNumber != null ? `${p.shirtNumber} · ` : ''}{p.name}{p.yellowCards ? ` (${p.yellowCards} amarelo)` : ''}</option>
             ))}
           </select>
         </Field>
