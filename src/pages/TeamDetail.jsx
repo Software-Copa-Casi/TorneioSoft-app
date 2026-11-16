@@ -145,7 +145,7 @@ export default function TeamDetail() {
                 <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required maxLength={150} />
               </Field>
               <Field label="Camisa" required error={fieldErrors.shirtNumber}>
-                <input type="number" inputMode="numeric" min={1} max={99} step={1} value={form.shirtNumber} required
+                <input type="number" inputMode="numeric" min={0} max={99} step={1} value={form.shirtNumber} required
                        placeholder="Nº"
                        onChange={(e) => setForm({ ...form, shirtNumber: e.target.value.replace(/\D/g, '').slice(0, 2) })} />
               </Field>
